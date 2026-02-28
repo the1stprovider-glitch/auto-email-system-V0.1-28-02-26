@@ -116,11 +116,6 @@ def advanced_reply_generator(subject, body, relationship, importance):
             "Thank you for the detailed information!",
             "I appreciate your message and will follow up."
         ],
-        "question": [
-            "Can you clarify exactly what you need?",
-            "I have a couple of follow‑up questions to better understand.",
-            "Let me know a bit more detail so I can provide the best response."
-        ],
         "report": [
             "I’ll prepare and share the latest report details.",
             "Reviewing the report now — you’ll have an update soon.",
