@@ -1,83 +1,139 @@
-# ================================================================
-# INTERACTIVE AI EMAIL & CALENDAR DEMO
-# User Input + Tailored Reply Generation
-# ================================================================
+import random
 
-import streamlit as st
+def advanced_reply_generator(subject, body, relationship, importance):
+    """
+    Generates a complex and natural-sounding reply that:
+      - Considers relationship (Friend, Boss, Professional, Unknown)
+      - Considers importance (Very Important, Medium, Not Important)
+      - Incorporates subject keywords, body context,
+        clarifying questions, and variable phrasing
+    """
 
-st.set_page_config(page_title="AI Email Demo", layout="wide")
-st.title("📧 Interactive AI Email & Calendar Demo")
-
-# =================== Simulated Calendar Events ===================
-
-calendar_events = [
-    {"title": "Team Strategy Meeting", "time": "2026-03-02 10:00"},
-    {"title": "Client Call", "time": "2026-03-03 15:00"}
-]
-
-# =================== AI Logic ===================
-
-def classify_importance(body):
     text = body.lower()
-    if any(kw in text for kw in ["urgent", "today", "asap", "deadline"]):
-        return "Very Important", "red"
-    if any(kw in text for kw in ["meeting", "schedule", "call", "discuss"]):
-        return "Medium", "orange"
-    return "Not Important", "green"
+    subject_text = subject.lower()
 
-def classify_relationship(sender):
-    if "friend" in sender.lower():
-        return "Friend"
-    if "boss" in sender.lower():
-        return "Boss"
-    return "Professional"
+    # =========== Base Intent & Emotion Detection ===========
+    # Check for common intents
+    intents = []
+    if any(w in text for w in ["meeting", "schedule", "call", "discussion"]):
+        intents.append("schedule")
+    if any(w in text for w in ["thanks", "thank you", "appreciate"]):
+        intents.append("gratitude")
+    if any(w in text for w in ["urgent", "asap", "priority"]):
+        intents.append("urgent")
+    if any(w in text for w in ["question", "ask", "clarify"]):
+        intents.append("question")
 
-def generate_reply(body, relationship, importance):
-    # Tone variations
+    # Add subject keywords if relevant
+    if "report" in subject_text:
+        intents.append("report")
+    if "lunch" in subject_text or "dinner" in subject_text:
+        intents.append("social")
+
+    # =========== Phrasing Pools ===========
+    # Greeting options based on relationship
+    greetings = {
+        "Friend": ["Hey!", "Hi there!", "What's up?"],
+        "Boss": ["Dear", "Hello", "Good day"],
+        "Professional": ["Hello", "Greetings"],
+        "Unknown": ["Hello", "Hi"]
+    }
+
+    closers = {
+        "Friend": ["Talk soon!", "Catch you later!", "Cheers!"],
+        "Boss": ["Respectfully,", "Kind regards,", "Thank you,"],
+        "Professional": ["Best regards,", "Sincerely,"],
+        "Unknown": ["Regards,", "Thank you,"]
+    }
+
+    # Choose random greeting + closer
+    greeting = random.choice(greetings.get(relationship, ["Hello"]))
+    closer = random.choice(closers.get(relationship, ["Regards,"]))
+
+    # =========== Content Variation Pools ===========
+    variation_pools = {
+        "urgent": [
+            ("I see this is quite important, so I’ll prioritise it immediately.",
+             "This looks like it needs prompt attention — I’ll get on it right away.",
+             "Given the urgency, I’ll begin working on this as soon as possible.")
+        ],
+        "schedule": [
+            ("Let’s coordinate on a good time for this.",
+             "I’m available for a call; what times work best for you?",
+             "Before finalising, could you confirm a preferred schedule?")
+        ],
+        "gratitude": [
+            ("Thanks for the update!",
+             "Appreciate the details — this helps a lot.",
+             "Thanks a bunch for the information!")
+        ],
+        "question": [
+            ("Could you clarify your question regarding (…)?",
+             "Can you provide a bit more detail on that point?",
+             "Just a quick follow‑up — I need a bit more context here."),
+        ],
+        "report": [
+            ("I’ll prepare the latest version of the report for you.",
+             "I’m reviewing the data now and will send an updated summary.",
+             "Let me gather the report details and follow up shortly.")
+        ],
+        "social": [
+            ("That sounds fun!",
+             "Looking forward to it!",
+             "Count me in — let’s make plans!")
+        ],
+        "default": [
+            ("Thanks for the note!",
+             "I’ve received your message and will respond properly.",
+             "Thank you for reaching out — I’ll handle this.")
+        ]
+    }
+
+    # =========== Complex Response Assembly ===========
+    response_parts = []
+
+    # Core lines based on detected intents
+    for intent in intents:
+        if intent in variation_pools:
+            response_parts.append(random.choice(variation_pools[intent]))
+
+    # If no strong intent, use default
+    if not response_parts:
+        response_parts.append(random.choice(variation_pools["default"]))
+
+    # Tailor extra follow‑ups based on importance
     if importance == "Very Important":
-        base = "I’ve reviewed your message carefully and will prioritize this right away."
+        follow_up = random.choice([
+            "I’ll provide a more detailed update soon.",
+            "Please let me know if you need this by a specific time.",
+            "I’ll keep you updated step by step."
+        ])
+        response_parts.append(follow_up)
     elif importance == "Medium":
-        base = "Thanks! I’ll review this and follow up shortly."
+        medium_follow = random.choice([
+            "I’ll get back with more info within the day.",
+            "Let me know if anything changes.",
+            "I’m on it and will touch base soon."
+        ])
+        response_parts.append(medium_follow)
     else:
-        base = "Thanks for the message! I got this and will return when needed."
+        casual_follow = random.choice([
+            "Let me know if there’s more to discuss.",
+            "Feel free to reach out anytime!",
+            "Hope that helps!"
+        ])
+        response_parts.append(casual_follow)
 
-    if relationship == "Friend":
-        greeting = "Hey!"
-        closer = "Talk soon!"
-    elif relationship == "Boss":
-        greeting = "Dear Sir/Madam,"
-        closer = "Respectfully,"
-    else:
-        greeting = "Hello,"
-        closer = "Kind regards,"
+    # Build final text
+    final_body = " ".join(response_parts)
 
-    return f"{greeting}\n\n{base}\n\n{closer}"
+    # Add optional clarification for missing info
+    clarification = ""
+    if "schedule" in intents and not any(w in text for w in ["am", "pm", "today", "tomorrow"]):
+        clarification = "\n\nP.S. Could you clarify the exact time you'd prefer?"
 
-# =================== User Input Form ===================
+    return f"""{greeting},
 
-st.subheader("📝 Create Your Own Email Example")
+{final_body}{clarification}
 
-sender_input = st.text_input("📧 Sender Email", placeholder="example@domain.com")
-subject_input = st.text_input("🖊️ Subject", placeholder="Enter email subject here")
-body_input = st.text_area("💬 Message Body", placeholder="Type the email body here...")
-
-if st.button("Generate Reply"):
-    if not sender_input or not body_input:
-        st.error("⬆️ Please enter at least sender and email body!")
-    else:
-        importance, color = classify_importance(body_input)
-        relationship = classify_relationship(sender_input)
-        reply = generate_reply(body_input, relationship, importance)
-
-        st.markdown(f"**Importance:** <span style='color:{color}'>{importance}</span>", unsafe_allow_html=True)
-        st.markdown(f"**Relationship:** {relationship}")
-
-        # If scheduling detected
-        if any(k in body_input.lower() for k in ["meeting", "schedule", "call", "free"]):
-            next_event = calendar_events[0]
-            st.markdown(f"📅 Next Calendar Event: {next_event['title']} at {next_event['time']}")
-
-        st.write("### 📨 Suggested Reply")
-        st.code(reply)
-
-st.info("Enter an email above and click **Generate Reply** to see an AI‑style suggestion!")
+{closer}"""
