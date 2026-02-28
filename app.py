@@ -1,139 +1,208 @@
+# ================================================================
+# AI EMAIL & CALENDAR INTELLIGENCE – STREAMLIT DASHBOARD
+# with Advanced, Context‑Sensitive Reply Generation
+# ================================================================
+
+import streamlit as st
 import random
+
+st.set_page_config(page_title="Advanced AI Email Demo", layout="wide")
+st.title("📧 Advanced AI Email & Calendar Intelligence")
+
+# ========== Simulated Inbox Data ==========
+
+inbox = [
+    {
+        "from": "boss@company.com",
+        "subject": "Urgent report deadline",
+        "body": "Can you send the final Q4 report *today*? The board needs it."
+    },
+    {
+        "from": "friend@email.com",
+        "subject": "Weekend plans",
+        "body": "Hey! You around this weekend? Maybe grab a bite?"
+    },
+    {
+        "from": "newclient@biz.com",
+        "subject": "Meeting request",
+        "body": "We’d like to schedule a meeting to discuss our future collaboration."
+    }
+]
+
+calendar_events = [
+    {"title": "Team Strategy Meeting", "time": "2026-03-02 10:00"},
+    {"title": "Client Call", "time": "2026-03-03 15:00"},
+    {"title": "Project Review", "time": "2026-03-04 09:00"}
+]
+
+# ========== IMPORTANCE & RELATIONSHIP CLASSIFICATION ==========
+
+def classify_importance(body):
+    text = body.lower()
+    if any(kw in text for kw in ["urgent", "today", "asap", "deadline"]):
+        return "Very Important", "red"
+    if any(kw in text for kw in ["meeting", "schedule", "call", "discuss"]):
+        return "Medium", "orange"
+    return "Not Important", "green"
+
+def classify_relationship(sender):
+    sender_lower = sender.lower()
+    if "friend" in sender_lower:
+        return "Friend"
+    if "boss" in sender_lower:
+        return "Boss"
+    return "Professional"
+
+# ========== ADVANCED REPLY GENERATOR ==========
 
 def advanced_reply_generator(subject, body, relationship, importance):
     """
-    Generates a complex and natural-sounding reply that:
-      - Considers relationship (Friend, Boss, Professional, Unknown)
-      - Considers importance (Very Important, Medium, Not Important)
-      - Incorporates subject keywords, body context,
-        clarifying questions, and variable phrasing
+    Generates a context‑rich reply that considers:
+      - Intent extracted from subject/body
+      - Relationship of sender
+      - Importance level
+      - Follow‑up actions and optional clarifications
     """
 
     text = body.lower()
     subject_text = subject.lower()
 
-    # =========== Base Intent & Emotion Detection ===========
-    # Check for common intents
+    # --- Intent detection ---
     intents = []
-    if any(w in text for w in ["meeting", "schedule", "call", "discussion"]):
+    if any(w in text for w in ["meeting", "schedule", "call"]):
         intents.append("schedule")
-    if any(w in text for w in ["thanks", "thank you", "appreciate"]):
+    if any(w in text for w in ["thanks", "appreciate"]):
         intents.append("gratitude")
-    if any(w in text for w in ["urgent", "asap", "priority"]):
+    if any(w in text for w in ["urgent", "asap", "deadline"]):
         intents.append("urgent")
-    if any(w in text for w in ["question", "ask", "clarify"]):
+    if any(w in text for w in ["question", "clarify", "help"]) or "?" in text:
         intents.append("question")
-
-    # Add subject keywords if relevant
     if "report" in subject_text:
         intents.append("report")
-    if "lunch" in subject_text or "dinner" in subject_text:
+    if any(w in subject_text for w in ["lunch", "dinner", "plans"]):
         intents.append("social")
 
-    # =========== Phrasing Pools ===========
-    # Greeting options based on relationship
+    # --- Phrasing libraries ---
     greetings = {
         "Friend": ["Hey!", "Hi there!", "What's up?"],
-        "Boss": ["Dear", "Hello", "Good day"],
+        "Boss": ["Dear", "Good day", "Hello"],
         "Professional": ["Hello", "Greetings"],
         "Unknown": ["Hello", "Hi"]
     }
-
     closers = {
-        "Friend": ["Talk soon!", "Catch you later!", "Cheers!"],
+        "Friend": ["Cheers!", "Talk soon!", "Catch you later!"],
         "Boss": ["Respectfully,", "Kind regards,", "Thank you,"],
         "Professional": ["Best regards,", "Sincerely,"],
-        "Unknown": ["Regards,", "Thank you,"]
+        "Unknown": ["Regards,", "Thanks,"]
     }
 
-    # Choose random greeting + closer
     greeting = random.choice(greetings.get(relationship, ["Hello"]))
     closer = random.choice(closers.get(relationship, ["Regards,"]))
 
-    # =========== Content Variation Pools ===========
+    # Variation pools for different intents
     variation_pools = {
         "urgent": [
-            ("I see this is quite important, so I’ll prioritise it immediately.",
-             "This looks like it needs prompt attention — I’ll get on it right away.",
-             "Given the urgency, I’ll begin working on this as soon as possible.")
+            "I understand this is a priority, and I’m acting on it right away.",
+            "Given the urgency, I'm moving this to the top of my list.",
+            "I will start work immediately and keep you updated."
         ],
         "schedule": [
-            ("Let’s coordinate on a good time for this.",
-             "I’m available for a call; what times work best for you?",
-             "Before finalising, could you confirm a preferred schedule?")
+            "Let’s plan around the best time — do you have preferences?",
+            "I can join a meeting — please confirm a suitable time.",
+            "Before finalising, could you tell me your availability?"
         ],
         "gratitude": [
-            ("Thanks for the update!",
-             "Appreciate the details — this helps a lot.",
-             "Thanks a bunch for the information!")
+            "Thanks for the update — it’s much appreciated.",
+            "Thank you for the detailed information!",
+            "I appreciate your message and will follow up."
         ],
         "question": [
-            ("Could you clarify your question regarding (…)?",
-             "Can you provide a bit more detail on that point?",
-             "Just a quick follow‑up — I need a bit more context here."),
+            "Can you clarify exactly what you need?",
+            "I have a couple of follow‑up questions to better understand.",
+            "Let me know a bit more detail so I can provide the best response."
         ],
         "report": [
-            ("I’ll prepare the latest version of the report for you.",
-             "I’m reviewing the data now and will send an updated summary.",
-             "Let me gather the report details and follow up shortly.")
+            "I’ll prepare and share the latest report details.",
+            "Reviewing the report now — you’ll have an update soon.",
+            "Let me consolidate the data and send the report promptly."
         ],
         "social": [
-            ("That sounds fun!",
-             "Looking forward to it!",
-             "Count me in — let’s make plans!")
-        ],
-        "default": [
-            ("Thanks for the note!",
-             "I’ve received your message and will respond properly.",
-             "Thank you for reaching out — I’ll handle this.")
+            "That sounds fun — I’d be glad to join!",
+            "Definitely count me in for that!",
+            "Looking forward to it — sounds great!"
         ]
     }
 
-    # =========== Complex Response Assembly ===========
+    # Build the body of the reply
     response_parts = []
-
-    # Core lines based on detected intents
     for intent in intents:
         if intent in variation_pools:
             response_parts.append(random.choice(variation_pools[intent]))
 
-    # If no strong intent, use default
     if not response_parts:
-        response_parts.append(random.choice(variation_pools["default"]))
+        response_parts.append("Thank you for your message — I’ve read through it carefully.")
 
-    # Tailor extra follow‑ups based on importance
+    # Importance‑based follow‑up
     if importance == "Very Important":
-        follow_up = random.choice([
-            "I’ll provide a more detailed update soon.",
+        response_parts.append(random.choice([
+            "I’ll provide a clear update within the hour.",
             "Please let me know if you need this by a specific time.",
-            "I’ll keep you updated step by step."
-        ])
-        response_parts.append(follow_up)
+            "Expect a detailed follow‑up shortly."
+        ]))
     elif importance == "Medium":
-        medium_follow = random.choice([
-            "I’ll get back with more info within the day.",
+        response_parts.append(random.choice([
+            "I’ll get back to you with more details soon.",
             "Let me know if anything changes.",
-            "I’m on it and will touch base soon."
-        ])
-        response_parts.append(medium_follow)
+            "I’m reviewing this and will touch base shortly."
+        ]))
     else:
-        casual_follow = random.choice([
-            "Let me know if there’s more to discuss.",
-            "Feel free to reach out anytime!",
-            "Hope that helps!"
-        ])
-        response_parts.append(casual_follow)
+        response_parts.append(random.choice([
+            "Feel free to reach out if there’s more to add.",
+            "I’ve noted this.",
+            "Hope this helps!"
+        ]))
 
-    # Build final text
-    final_body = " ".join(response_parts)
-
-    # Add optional clarification for missing info
+    # Optional clarification
     clarification = ""
-    if "schedule" in intents and not any(w in text for w in ["am", "pm", "today", "tomorrow"]):
-        clarification = "\n\nP.S. Could you clarify the exact time you'd prefer?"
+    if "schedule" in intents and not any(x in text for x in ["am", "pm", "today", "tomorrow"]):
+        clarification = "\n\nP.S. Could you specify the ideal time?"
+
+    final_body = " ".join(response_parts)
 
     return f"""{greeting},
 
 {final_body}{clarification}
 
 {closer}"""
+
+# ========== DISPLAY DASHBOARD ==========
+
+st.subheader("📥 Inbox Overview")
+
+for idx, email in enumerate(inbox):
+    importance, color = classify_importance(email["body"])
+    relationship = classify_relationship(email["from"])
+    reply = advanced_reply_generator(
+        email["subject"],
+        email["body"],
+        relationship,
+        importance
+    )
+
+    with st.expander(f"{idx+1}. From: {email['from']} | Subject: {email['subject']}"):
+        st.markdown(f"**Body:** {email['body']}")
+        st.markdown(
+            f"**Importance:** <span style='color:{color}'>{importance}</span>",
+            unsafe_allow_html=True
+        )
+        st.markdown(f"**Relationship:** {relationship}")
+
+        if any(word in email["body"].lower() for word in ["meeting", "schedule", "free", "call"]):
+            next_event = calendar_events[0]
+            st.markdown(
+                f"**Next Calendar Event:** {next_event['title']} at {next_event['time']}"
+            )
+
+        st.code(reply)
+
+st.success("✅ Enhanced Demo Live!")
